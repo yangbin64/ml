@@ -8,15 +8,15 @@ from sklearn import linear_model
 from Ridge import ridge
 
 # X is the 10x10 Hilbert matrix
-#X = 1. / (np.arange(1, 11) + np.arange(0, 10)[:, np.newaxis])
-#y = np.ones(10)
+X = 1. / (np.arange(1, 11) + np.arange(0, 10)[:, np.newaxis])
+y = np.ones(10)
+yX = np.hstack((y.reshape(10,1), X))
 
-X = np.arange(15).reshape(5,3)+10
-b = np.array([2., 3., 4.]).reshape(3,1)+100.
-y = np.dot(X,b)
-print(y)
-#y = np.arange(5)*2+300
-yX = np.hstack((y.reshape(5,1), X))
+#X = np.arange(15).reshape(5,3)+10
+#b = np.array([2., 3., 4.]).reshape(3,1)+100.
+#y = np.dot(X,b)
+#yX = np.hstack((y.reshape(5,1), X))
+
 #print(y)
 #print(X)
 #print(yX)
@@ -36,11 +36,13 @@ coefs = []
 for a in alphas:
     print('>>>>>>>>>>')
     r0 = linear_model.Ridge(alpha=a, fit_intercept=False)
+    #r0 = linear_model.Ridge(alpha=a)
     r0.fit(X, y)
     print(r0.coef_)
     print(r0.intercept_)
     
     r = ridge.Ridge(alpha=a, fit_intercept=False)
+    #r = ridge.Ridge(alpha=a)
     r.fit_file(X, y)
     print(r.coef_)
     print(r.intercept_)

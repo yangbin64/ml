@@ -31,9 +31,7 @@ from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import GridSearchCV
 from sklearn.externals import six
 from sklearn.metrics.scorer import check_scoring
-from datashape.coretypes import float64, null
-from pandas.tools.tests.test_join import a_
-from sklearn.preprocessing.tests.test_data import n_features
+from datashape.coretypes import float64
 
 
 def _solve_sparse_cg(X, y, alpha, max_iter=None, tol=1e-3, verbose=0):
@@ -123,17 +121,17 @@ def _solve_cholesky(X, y, alpha):
         return coefs
 
 
-#def _solve_cholesky_file(X, y, alpha):
-def _solve_cholesky_file(fn_yX, n_features, alpha):
+def _solve_cholesky_file(X, y, alpha):
     # w = inv(X^t X + alpha*Id) * X.T y
-    #n_samples, n_features = X.shape
-    #n_targets = y.shape[1]
+    n_samples, n_features = X.shape
+    n_targets = y.shape[1]
 
-    #A = safe_sparse_dot(X.T, X, dense_output=True)
-    #Xy = safe_sparse_dot(X.T, y, dense_output=True)
-    
+    A = safe_sparse_dot(X.T, X, dense_output=True)
+    Xy = safe_sparse_dot(X.T, y, dense_output=True)
+    #print(X)
     A_file = np.array([[0.0 for i in range(n_features)] for j in range(n_features)])
     Xy_file = np.array([[0.0 for i in range(1)] for j in range(n_features)])
+    
     f_yX = open("yX.txt", 'r')
     line = f_yX.readline()
     while line:
@@ -143,7 +141,7 @@ def _solve_cholesky_file(fn_yX, n_features, alpha):
         
         values_y = values[0]
         values_X = values[1:]
-        
+        #print(values_X)
         A_file = A_file + safe_sparse_dot(values_X.reshape(n_features,1), values_X.reshape(1,n_features), dense_output=True)
         Xy_file = Xy_file + safe_sparse_dot(values_X.reshape(n_features,1), values_y.reshape(1,1), dense_output=True)
         
@@ -151,23 +149,26 @@ def _solve_cholesky_file(fn_yX, n_features, alpha):
     f_yX.close
     
     #print(X)
-    #print(A)
-    print(A_file)
-    #print(Xy)
+    print('A=', A)
+    print('A_file=', A_file)
+    print(Xy)
     print(Xy_file)
     #print(alpha)
 
     one_alpha = np.array_equal(alpha, len(alpha) * [alpha[0]])
 
     if one_alpha:
-        #A.flat[::n_features + 1] += alpha[0]
+        A.flat[::n_features + 1] += alpha[0]
+        print('A:', A)
         A_file.flat[::n_features + 1] += alpha[0]
-        return linalg.solve(A_file, Xy_file, sym_pos=True,
+        print('A_file:', A_file)
+        print(linalg.solve(A, Xy, sym_pos=True,
+                            overwrite_a=True).T)
+        print(linalg.solve(A_file, Xy_file, sym_pos=True,
+                            overwrite_a=True).T)
+        return linalg.solve(A, Xy, sym_pos=True,
                             overwrite_a=True).T
     else:
-        print('!one_alpha')
-        return null
-        '''
         coefs = np.empty([n_targets, n_features])
         for coef, target, current_alpha in zip(coefs, Xy.T, alpha):
             A.flat[::n_features + 1] += current_alpha
@@ -175,7 +176,6 @@ def _solve_cholesky_file(fn_yX, n_features, alpha):
                                    overwrite_a=False).ravel()
             A.flat[::n_features + 1] -= current_alpha
         return coefs
-        '''
 
 
 def _solve_cholesky_kernel(K, y, alpha, sample_weight=None, copy=False):
@@ -503,9 +503,6 @@ def ridge_regression(X, y, alpha, sample_weight=None, solver='auto',
         return coef
 
 
-#def ridge_regression_file(X, y, alpha, sample_weight=None, solver='auto',
-#                     max_iter=None, tol=1e-3, verbose=0, random_state=None,
-#                     return_n_iter=False, return_intercept=False):
 def ridge_regression_file(X, y, alpha, sample_weight=None, solver='auto',
                      max_iter=None, tol=1e-3, verbose=0, random_state=None,
                      return_n_iter=False, return_intercept=False):
@@ -712,8 +709,7 @@ def ridge_regression_file(X, y, alpha, sample_weight=None, solver='auto',
         else:
             print('n_features <= n_samples')
             try:
-                #coef = _solve_cholesky_file(X, y, alpha)
-                coef = _solve_cholesky_file('yX.txt', 3, alpha)
+                coef = _solve_cholesky_file(X, y, alpha)
             except linalg.LinAlgError:
                 # use SVD solver if matrix is singular
                 solver = 'svd'
