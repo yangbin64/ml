@@ -7,7 +7,7 @@ class Ridge:
     def __init__(self, alpha=1.0):
         self.alpha = alpha
 
-    def fit(self, filename, n_samples, n_features):
+    def compute_A_Xy(self, filename, n_samples, n_features):
         A = np.array([[0.0 for i in range(n_features+1)] for j in range(n_features+1)])
         Xy = np.array([[0.0 for i in range(1)] for j in range(n_features+1)])
 
@@ -32,6 +32,11 @@ class Ridge:
 
             line = f_yX.readline()
         f_yX.close
+
+        return A, Xy
+
+    def fit(self, filename, n_samples, n_features):
+        A, Xy = self.compute_A_Xy(filename, n_samples, n_features)
 
         mid = time.time()
         print(mid)
