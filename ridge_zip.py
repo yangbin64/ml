@@ -8,7 +8,7 @@ n_features = 20
 n_blocks = 4
 n_units = [3,6,5,6]
 n_bases = [0,3,9,14]
-
+'''
 b = [[],[],[],[]]
 fb = open('b_s.txt', 'w')
 
@@ -49,5 +49,5 @@ coef = ridge.fit('yX_s.txt', n_samples, n_features)
 print(coef)
 end = time.time()
 print(end)
-'''
+
 

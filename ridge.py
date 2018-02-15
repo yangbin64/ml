@@ -35,8 +35,43 @@ class Ridge:
 
         return A, Xy
 
+    def compute_A_Xy_sparse(self, filename, n_samples, n_features):
+        A = np.array([[0.0 for i in range(n_features+1)] for j in range(n_features+1)])
+        Xy = np.array([[0.0 for i in range(1)] for j in range(n_features+1)])
+
+        CONST1 = 1.0#/n_samples
+        #CONST2 = 1.0/np.sqrt(n_samples)
+
+        f_yX = open(filename, 'r')
+        line = f_yX.readline()
+        cnt = 0
+        while line:
+            cnt = cnt + 1
+            if cnt%100000 == 0:
+                print(cnt)
+            words = line.split('\n')[0].split(',')
+            words_X = words[1:]
+            values_y = float(words[0])
+            values_X = np.array([int(x) for x in words_X if x])
+            values_X = np.append(values_X, n_features)
+            #print(values_X)
+
+            for i in range(len(values_X)):
+                ii = values_X[i]
+                Xy[ii] = Xy[ii] + CONST1*values_y
+
+                for j in range(len(values_X)):
+                    jj = values_X[j]
+                    A[ii,jj] = A[ii,jj] + CONST1
+
+            line = f_yX.readline()
+        f_yX.close
+
+        return A, Xy
+
     def fit(self, filename, n_samples, n_features):
-        A, Xy = self.compute_A_Xy(filename, n_samples, n_features)
+        #A, Xy = self.compute_A_Xy(filename, n_samples, n_features)
+        A, Xy = self.compute_A_Xy_sparse(filename, n_samples, n_features)
 
         mid = time.time()
         print(mid)
